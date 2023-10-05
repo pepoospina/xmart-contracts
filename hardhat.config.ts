@@ -62,8 +62,10 @@ const config: HardhatUserConfig = {
 
   etherscan: {
     apiKey: process.env.ETHERSCAN_API_KEY
+  },
+  typechain: {
+    outDir: './typechain',
   }
-
 }
 
 // coverage chokes on the "compilers" settings

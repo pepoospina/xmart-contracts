@@ -14,9 +14,9 @@ import { UserOperation } from './UserOperation'
 import { Create2Factory } from '../src/Create2Factory'
 import { TransactionRequest } from '@ethersproject/abstract-provider'
 
-import EntryPointSimulationsJson from '../artifacts/contracts/core/EntryPointSimulations.sol/EntryPointSimulations.json'
+import EntryPointSimulationsJson from '../artifacts/contracts/erc4337/core/EntryPointSimulations.sol/EntryPointSimulations.json'
 import { ethers } from 'hardhat'
-import { IEntryPointSimulations } from '../typechain/contracts/core/EntryPointSimulations'
+import { IEntryPointSimulations } from '../typechain/contracts/erc4337/core/EntryPointSimulations'
 
 export function packUserOp (op: UserOperation, forSignature = true): string {
   if (forSignature) {

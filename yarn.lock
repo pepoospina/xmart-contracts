@@ -880,6 +880,16 @@
     path-browserify "^1.0.0"
     url "^0.11.0"
 
+"@safe-global/mock-contract@^4.1.0":
+  version "4.1.0"
+  resolved "https://registry.yarnpkg.com/@safe-global/mock-contract/-/mock-contract-4.1.0.tgz#6a8ee3afbe094c3a90a21af8e6a88b058acb327f"
+  integrity sha512-EGLpdNDdA1nx/DDjPmHSDZS2Zrlu3v4EsNw1zbM1Netk8Vf7oMwQetyqtfb8+ZYHhufkumVves3ED/jRlJPwLw==
+
+"@safe-global/safe-singleton-factory@^1.0.15":
+  version "1.0.15"
+  resolved "https://registry.yarnpkg.com/@safe-global/safe-singleton-factory/-/safe-singleton-factory-1.0.15.tgz#e25cd3a0ea0cdf6c2682b62c265cb0aa8bf766f0"
+  integrity sha512-7v7euTAJq8zY4YkKe6RlY0adWnS0KbMJahVAD66SybKhrd20hoKIcgkjKcFrWUp9o7coUDeYuO7cwdBajzk0jQ==
+
 "@scure/base@~1.1.0":
   version "1.1.1"
   resolved "https://registry.yarnpkg.com/@scure/base/-/base-1.1.1.tgz#ebb651ee52ff84f420097055f4bf46cfba403938"
@@ -1051,10 +1061,18 @@
   dependencies:
     ethers "^5.0.2"
 
-"@typechain/hardhat@^2.3.0":
-  version "2.3.1"
-  resolved "https://registry.yarnpkg.com/@typechain/hardhat/-/hardhat-2.3.1.tgz#1e8a6e3795e115a5d5348526282b5c597fab0b78"
-  integrity sha512-BQV8OKQi0KAzLXCdsPO0pZBNQQ6ra8A2ucC26uFX/kquRBtJu1yEyWnVSmtr07b5hyRoJRpzUeINLnyqz4/MAw==
+"@typechain/ethers-v6@^0.5.0":
+  version "0.5.0"
+  resolved "https://registry.yarnpkg.com/@typechain/ethers-v6/-/ethers-v6-0.5.0.tgz#841a63a61272448b72dfc8f53d32d7813709ef62"
+  integrity sha512-wsz7AvbY5n2uVwpS2RHDYsW6wYOrhWxeTLFpxuzhO62w/ZDQEVIipArX731KA/hdqygP2zJ2RTkVXgzU1WrU1g==
+  dependencies:
+    lodash "^4.17.15"
+    ts-essentials "^7.0.1"
+
+"@typechain/hardhat@^9.0.0":
+  version "9.0.0"
+  resolved "https://registry.yarnpkg.com/@typechain/hardhat/-/hardhat-9.0.0.tgz#c92d562566db9b933ac6899c0a0a2ae1871ad5c1"
+  integrity sha512-oCGRvcsryRHEDZ4KO2lenB7wdf8WMDS+f9KGcRFiQWcRLpWWD0ruBGRxNjzkTqyPLtgQ9MvZsXquAFPEw7gAEA==
   dependencies:
     fs-extra "^9.1.0"
 
