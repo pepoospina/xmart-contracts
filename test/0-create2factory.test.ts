@@ -16,6 +16,7 @@ describe('test Create2Factory', () => {
     provider = ethers.provider
     factory = new Create2Factory(provider)
   })
+  
   it('should deploy the factory', async () => {
     expect(await factory._isFactoryDeployed()).to.equal(false, 'factory exists before test deploy')
     await factory.deployFactory()
@@ -31,6 +32,7 @@ describe('test Create2Factory', () => {
     await factory.deploy(initCode, 0)
     expect(await provider.getCode(addr).then(code => code.length)).to.gt(100)
   })
+
   it('should deploy to different address based on salt', async () => {
     const initCode = TestToken__factory.bytecode
 

@@ -32,6 +32,10 @@ contract SimpleAccount is BaseAccount, TokenCallbackHandler, UUPSUpgradeable, In
         _;
     }
 
+    function changeOwner(address _owner) public onlyOwner() {
+        owner = _owner;
+    }
+
     /// @inheritdoc BaseAccount
     function entryPoint() public view virtual override returns (IEntryPoint) {
         return _entryPoint;

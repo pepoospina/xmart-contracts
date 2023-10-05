@@ -1,4 +1,6 @@
-import "../erc4337/core/BaseAccount.sol";
+import "../erc4337/samples/SimpleAccount.sol";
 
-abstract contract XAccount is BaseAccount {
-}
+contract XAccount is SimpleAccount {
+  constructor(IEntryPoint _entryPoint) SimpleAccount(_entryPoint) {
+  }
+}  
