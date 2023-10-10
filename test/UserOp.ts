@@ -87,24 +87,35 @@ export const DefaultsForUserOp: UserOperation = {
   signature: '0x'
 }
 
-export function signUserOp (op: UserOperation, signer: Wallet, entryPoint: string, chainId: number): UserOperation {
+export function signUserOpOld(
+  op: UserOperation,
+  signer: Wallet,
+  entryPoint: string,
+  chainId: number
+): UserOperation {
   const message = getUserOpHash(op, entryPoint, chainId)
   const msg1 = Buffer.concat([
     Buffer.from('\x19Ethereum Signed Message:\n32', 'ascii'),
-    Buffer.from(arrayify(message))
+    Buffer.from(arrayify(message)),
   ])
 
-  const sig = ecsign(keccak256_buffer(msg1), Buffer.from(arrayify(signer.privateKey)))
+  const sig = ecsign(
+    keccak256_buffer(msg1),
+    Buffer.from(arrayify(signer.privateKey))
+  )
   // that's equivalent of:  await signer.signMessage(message);
   // (but without "async"
   const signedMessage1 = toRpcSig(sig.v, sig.r, sig.s)
   return {
     ...op,
-    signature: signedMessage1
+    signature: signedMessage1,
   }
 }
 
-export function fillUserOpDefaults (op: Partial<UserOperation>, defaults = DefaultsForUserOp): UserOperation {
+export function fillUserOpDefaults(
+  op: Partial<UserOperation>,
+  defaults = DefaultsForUserOp
+): UserOperation {
   const partial: any = { ...op }
   // we want "item:undefined" to be used from defaults, and not override defaults, so we must explicitly
   // remove those so "merge" will succeed.
@@ -130,7 +141,11 @@ export function fillUserOpDefaults (op: Partial<UserOperation>, defaults = Defau
 // sender - only in case of construction: fill sender from initCode.
 // callGasLimit: VERY crude estimation (by estimating call to account, and add rough entryPoint overhead
 // verificationGasLimit: hard-code default at 100k. should add "create2" cost
-export async function fillUserOp (op: Partial<UserOperation>, entryPoint?: EntryPoint, getNonceFunction = 'getNonce'): Promise<UserOperation> {
+export async function fillUserOp(
+  op: Partial<UserOperation>,
+  entryPoint?: EntryPoint,
+  getNonceFunction = 'getNonce'
+): Promise<UserOperation> {
   const op1 = { ...op }
   const provider = entryPoint?.provider
   if (op.initCode != null) {
@@ -139,14 +154,18 @@ export async function fillUserOp (op: Partial<UserOperation>, entryPoint?: Entry
     if (op1.nonce == null) op1.nonce = 0
     if (op1.sender == null) {
       // hack: if the init contract is our known deployer, then we know what the address would be, without a view call
-      if (initAddr.toLowerCase() === Create2Factory.contractAddress.toLowerCase()) {
+      if (
+        initAddr.toLowerCase() === Create2Factory.contractAddress.toLowerCase()
+      ) {
         const ctr = hexDataSlice(initCallData, 32)
         const salt = hexDataSlice(initCallData, 0, 32)
         op1.sender = Create2Factory.getDeployedAddress(ctr, salt)
       } else {
         // console.log('\t== not our deployer. our=', Create2Factory.contractAddress, 'got', initAddr)
         if (provider == null) throw new Error('no entrypoint/provider')
-        op1.sender = await entryPoint!.callStatic.getSenderAddress(op1.initCode!).catch(e => e.errorArgs.sender)
+        op1.sender = await entryPoint!.callStatic
+          .getSenderAddress(op1.initCode!)
+          .catch((e) => e.errorArgs.sender)
       }
     }
     if (op1.verificationGasLimit == null) {
@@ -155,22 +174,30 @@ export async function fillUserOp (op: Partial<UserOperation>, entryPoint?: Entry
         from: entryPoint?.address,
         to: initAddr,
         data: initCallData,
-        gasLimit: 10e6
+        gasLimit: 10e6,
       })
-      op1.verificationGasLimit = BigNumber.from(DefaultsForUserOp.verificationGasLimit).add(initEstimate)
+      op1.verificationGasLimit = BigNumber.from(
+        DefaultsForUserOp.verificationGasLimit
+      ).add(initEstimate)
     }
   }
   if (op1.nonce == null) {
-    if (provider == null) throw new Error('must have entryPoint to autofill nonce')
-    const c = new Contract(op.sender!, [`function ${getNonceFunction}() view returns(uint256)`], provider)
+    if (provider == null)
+      throw new Error('must have entryPoint to autofill nonce')
+    const c = new Contract(
+      op.sender!,
+      [`function ${getNonceFunction}() view returns(uint256)`],
+      provider
+    )
     op1.nonce = await c[getNonceFunction]().catch(rethrow())
   }
   if (op1.callGasLimit == null && op.callData != null) {
-    if (provider == null) throw new Error('must have entryPoint for callGasLimit estimate')
+    if (provider == null)
+      throw new Error('must have entryPoint for callGasLimit estimate')
     const gasEtimated = await provider.estimateGas({
       from: entryPoint?.address,
       to: op1.sender,
-      data: op1.callData
+      data: op1.callData,
     })
 
     // console.log('estim', op1.sender,'len=', op1.callData!.length, 'res=', gasEtimated)
@@ -178,9 +205,12 @@ export async function fillUserOp (op: Partial<UserOperation>, entryPoint?: Entry
     op1.callGasLimit = gasEtimated // .add(55000)
   }
   if (op1.maxFeePerGas == null) {
-    if (provider == null) throw new Error('must have entryPoint to autofill maxFeePerGas')
+    if (provider == null)
+      throw new Error('must have entryPoint to autofill maxFeePerGas')
     const block = await provider.getBlock('latest')
-    op1.maxFeePerGas = block.baseFeePerGas!.add(op1.maxPriorityFeePerGas ?? DefaultsForUserOp.maxPriorityFeePerGas)
+    op1.maxFeePerGas = block.baseFeePerGas!.add(
+      op1.maxPriorityFeePerGas ?? DefaultsForUserOp.maxPriorityFeePerGas
+    )
   }
   // TODO: this is exactly what fillUserOp below should do - but it doesn't.
   // adding this manually
@@ -196,24 +226,37 @@ export async function fillUserOp (op: Partial<UserOperation>, entryPoint?: Entry
   return op2
 }
 
-export async function fillAndSign (op: Partial<UserOperation>, signer: Wallet | Signer, entryPoint?: EntryPoint, getNonceFunction = 'getNonce'): Promise<UserOperation> {
+export async function signUserOp(
+  op: UserOperation,
+  signer: Wallet | Signer,
+  entryPoint?: EntryPoint
+): Promise<UserOperation> {
   const provider = entryPoint?.provider
-  const op2 = await fillUserOp(op, entryPoint, getNonceFunction)
-
-  const chainId = await provider!.getNetwork().then(net => net.chainId)
-  const message = arrayify(getUserOpHash(op2, entryPoint!.address, chainId))
+  const chainId = await provider!.getNetwork().then((net) => net.chainId)
+  const message = arrayify(getUserOpHash(op, entryPoint!.address, chainId))
 
   let signature
   try {
     signature = await signer.signMessage(message)
   } catch (err: any) {
     // attempt to use 'eth_sign' instead of 'personal_sign' which is not supported by Foundry Anvil
-    signature = await (signer as any)._legacySignMessage(message)
+    signature = await(signer as any)._legacySignMessage(message)
   }
+
   return {
-    ...op2,
-    signature
+    ...op,
+    signature,
   }
+}
+
+export async function fillAndSign(
+  op: Partial<UserOperation>,
+  signer: Wallet | Signer,
+  entryPoint?: EntryPoint,
+  getNonceFunction = 'getNonce'
+): Promise<UserOperation> {
+  const op2 = await fillUserOp(op, entryPoint, getNonceFunction)
+  return signUserOp(op2, signer, entryPoint)
 }
 
 /**

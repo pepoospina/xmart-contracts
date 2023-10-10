@@ -1,25 +1,15 @@
-import { Signer } from "ethers"
+import { BigNumberish, BytesLike, Signer } from 'ethers'
+import { XAccountFactory } from '../typechain'
+import { hexConcat } from 'ethers/lib/utils'
 
-// Deploys an implementation and a proxy pointing to this implementation
-export async function createXAccount (
-  ethersSigner: Signer,
-  accountOwner: string,
-  entryPoint: string,
-  _factory?: XAccountFactory
-):
-  Promise<{
-    proxy: SimpleAccount
-    accountFactory: SimpleAccountFactory
-    implementation: string
-  }> {
-  const accountFactory = _factory ?? await new SimpleAccountFactory__factory(ethersSigner).deploy(entryPoint)
-  const implementation = await accountFactory.accountImplementation()
-  await accountFactory.createAccount(accountOwner, 0)
-  const accountAddress = await accountFactory.getAddress(accountOwner, 0)
-  const proxy = SimpleAccount__factory.connect(accountAddress, ethersSigner)
-  return {
-    implementation,
-    accountFactory,
-    proxy
-  }
+// helper function to create the initCode to deploy the xaccount, using our account factory.
+export function getXAccountInitCode(
+  owner: string,
+  factory: XAccountFactory,
+  salt: BigNumberish = 0
+): BytesLike {
+  return hexConcat([
+    factory.address,
+    factory.interface.encodeFunctionData('createAccount', [owner, salt]),
+  ])
 }

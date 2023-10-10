@@ -18,6 +18,8 @@ import "./callback/TokenCallbackHandler.sol";
   *  has execute, eth handling methods
   *  has a single signer that can send requests through the entryPoint.
   */
+import "hardhat/console.sol";
+
 contract SimpleAccount is BaseAccount, TokenCallbackHandler, UUPSUpgradeable, Initializable {
     using ECDSA for bytes32;
 
@@ -110,7 +112,10 @@ contract SimpleAccount is BaseAccount, TokenCallbackHandler, UUPSUpgradeable, In
     }
 
     function _call(address target, uint256 value, bytes memory data) internal {
+        console.log("SimpleAccount _call() - target: %s - data: ", target);
+        console.logBytes(data);
         (bool success, bytes memory result) = target.call{value : value}(data);
+        console.log("SimpleAccount _call() - success: %d", success);
         if (!success) {
             assembly {
                 revert(add(result, 32), mload(result))

@@ -243,10 +243,16 @@ export async function checkForBannedOps (txHash: string, checkPaymaster: boolean
   }
 }
 
-export async function deployEntryPoint (provider = ethers.provider): Promise<EntryPoint> {
-  const create2factory = new Create2Factory(provider)
-  const addr = await create2factory.deploy(EntryPoint__factory.bytecode, 0, process.env.COVERAGE != null ? 20e6 : 8e6)
-  return EntryPoint__factory.connect(addr, provider.getSigner())
+export async function deployEntryPoint(signer: Signer): Promise<EntryPoint> {
+  if (signer.provider === undefined)
+    throw new Error('Signer must have a provider')
+  const create2factory = new Create2Factory(signer.provider)
+  const addr = await create2factory.deploy(
+    EntryPoint__factory.bytecode,
+    0,
+    process.env.COVERAGE != null ? 20e6 : 8e6
+  )
+  return EntryPoint__factory.connect(addr, signer)
 }
 
 export async function isDeployed (addr: string): Promise<boolean> {

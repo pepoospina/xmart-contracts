@@ -20,7 +20,12 @@ import {
   ONE_ETH,
   HashZero, deployEntryPoint
 } from './testutils'
-import { fillUserOpDefaults, getUserOpHash, packUserOp, signUserOp } from './UserOp'
+import {
+  fillUserOpDefaults,
+  getUserOpHash,
+  packUserOp,
+  signUserOpOld,
+} from './UserOp'
 import { parseEther } from 'ethers/lib/utils'
 import { UserOperation } from './UserOperation'
 
@@ -123,12 +128,17 @@ describe('SimpleAccount', function () {
       const maxFeePerGas = 3e9
       const chainId = await ethers.provider.getNetwork().then(net => net.chainId)
 
-      userOp = signUserOp(fillUserOpDefaults({
-        sender: account.address,
-        callGasLimit,
-        verificationGasLimit,
-        maxFeePerGas
-      }), accountOwner, entryPointEoa, chainId)
+      userOp = signUserOpOld(
+        fillUserOpDefaults({
+          sender: account.address,
+          callGasLimit,
+          verificationGasLimit,
+          maxFeePerGas,
+        }),
+        accountOwner,
+        entryPointEoa,
+        chainId
+      )
 
       userOpHash = await getUserOpHash(userOp, entryPointEoa, chainId)
 

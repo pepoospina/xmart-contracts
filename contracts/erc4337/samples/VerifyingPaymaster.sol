@@ -6,7 +6,10 @@ pragma solidity ^0.8.12;
 
 import "../core/BasePaymaster.sol";
 import "../core/UserOperationLib.sol";
+
 import "@openzeppelin/contracts/utils/cryptography/ECDSA.sol";
+import "@openzeppelin/contracts/access/Ownable.sol";
+
 /**
  * A sample paymaster that uses external service to decide whether to pay for the UserOp.
  * The paymaster trusts an external signer to sign the transaction.
@@ -21,7 +24,7 @@ contract VerifyingPaymaster is BasePaymaster {
     using ECDSA for bytes32;
     using UserOperationLib for UserOperation;
 
-    address public immutable verifyingSigner;
+    address public verifyingSigner;
 
     uint256 private constant VALID_TIMESTAMP_OFFSET = 20;
 
@@ -31,6 +34,9 @@ contract VerifyingPaymaster is BasePaymaster {
         verifyingSigner = _verifyingSigner;
     }
 
+    function changeVerifyingSigner(address _verifyingSigner) public onlyOwner {
+        verifyingSigner = _verifyingSigner;
+    }
 
     /**
      * return the hash we're going to sign off-chain (and validate on-chain)

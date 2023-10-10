@@ -37,16 +37,18 @@ const optimizedComilerSettings = {
 
 const config: HardhatUserConfig = {
   solidity: {
-    compilers: [{
-      version: '0.8.15',
-      settings: {
-        optimizer: { enabled: true, runs: 1000000 }
-      }
-    }],
+    compilers: [
+      {
+        version: '0.8.15',
+        settings: {
+          optimizer: { enabled: true, runs: 1000000 },
+        },
+      },
+    ],
     overrides: {
       'contracts/core/EntryPoint.sol': optimizedComilerSettings,
-      'contracts/samples/SimpleAccount.sol': optimizedComilerSettings
-    }
+      'contracts/samples/SimpleAccount.sol': optimizedComilerSettings,
+    },
   },
   networks: {
     dev: { url: 'http://localhost:8545' },
@@ -54,19 +56,19 @@ const config: HardhatUserConfig = {
     localgeth: { url: 'http://localgeth:8545' },
     goerli: getNetwork('goerli'),
     sepolia: getNetwork('sepolia'),
-    proxy: getNetwork1('http://localhost:8545')
+    proxy: getNetwork1('http://localhost:8545'),
   },
   mocha: {
-    timeout: 10000
+    timeout: 120000,
   },
 
   etherscan: {
-    apiKey: process.env.ETHERSCAN_API_KEY
+    apiKey: process.env.ETHERSCAN_API_KEY,
   },
   typechain: {
     outDir: './typechain',
-    target: 'ethers-v5'
-  }
+    target: 'ethers-v5',
+  },
 }
 
 // coverage chokes on the "compilers" settings

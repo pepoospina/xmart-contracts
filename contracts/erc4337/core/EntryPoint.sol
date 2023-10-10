@@ -23,6 +23,8 @@ import "@openzeppelin/contracts/security/ReentrancyGuard.sol";
  * Account-Abstraction (EIP-4337) singleton EntryPoint implementation.
  * Only one instance required on each chain.
  */
+import "hardhat/console.sol";
+
 contract EntryPoint is IEntryPoint, StakeManager, NonceManager, ReentrancyGuard, OpenZeppelin.ERC165 {
 
     using UserOperationLib for UserOperation;
@@ -93,6 +95,9 @@ contract EntryPoint is IEntryPoint, StakeManager, NonceManager, ReentrancyGuard,
                 }
             }
             // handleOps was called with gas limit too low. abort entire bundle.
+            console.log('EntryPoint - _executeUserOp - catch innerRevertCode:');
+            console.logBytes32(innerRevertCode);
+
             if (innerRevertCode == INNER_OUT_OF_GAS) {
                 //report paymaster, since if it is not deliberately caused by the bundler,
                 // it must be a revert caused by paymaster.
@@ -272,7 +277,11 @@ contract EntryPoint is IEntryPoint, StakeManager, NonceManager, ReentrancyGuard,
 
         IPaymaster.PostOpMode mode = IPaymaster.PostOpMode.opSucceeded;
         if (callData.length > 0) {
+            console.log("EntryPoint - innerHandleOp() pre - sender: %s - callGasLimit: %s - callData: ", mUserOp.sender, callGasLimit);
+            console.logBytes(callData);
+            
             bool success = Exec.call(mUserOp.sender, 0, callData, callGasLimit);
+                        
             if (!success) {
                 bytes memory result = Exec.getReturnData(REVERT_REASON_MAX_LEN);
                 if (result.length > 0) {
@@ -341,12 +350,22 @@ contract EntryPoint is IEntryPoint, StakeManager, NonceManager, ReentrancyGuard,
             // When using a Paymaster, the verificationGasLimit is used also to as a limit for the postOp call.
             // Our security model might call postOp eventually twice.
             uint256 mul = mUserOp.paymaster != address(0) ? 3 : 1;
-            uint256 requiredGas = mUserOp.callGasLimit +
-                mUserOp.verificationGasLimit *
-                mul +
-                mUserOp.preVerificationGas;
+            
+            uint256 gasLimit = mUserOp.callGasLimit;
+            uint256 verificationGasLimit = mUserOp.verificationGasLimit * mul;
+            uint256 preVerificationGas = mUserOp.preVerificationGas;
 
+            uint256 requiredGas = gasLimit +
+                verificationGasLimit +
+                preVerificationGas;
+            
             requiredPrefund = requiredGas * mUserOp.maxFeePerGas;
+
+            // console.log("_getRequiredPrefund - mul: %s - gasLimit: %s - verificationGasLimit: %s", 
+            //     mul, gasLimit, verificationGasLimit);
+
+            // console.log("_getRequiredPrefund - preVerificationGas: %s - requiredGas: %s - requiredPrefund: %s", 
+            //     preVerificationGas, requiredGas, requiredPrefund);
         }
     }
 
@@ -419,12 +438,16 @@ contract EntryPoint is IEntryPoint, StakeManager, NonceManager, ReentrancyGuard,
             address paymaster = mUserOp.paymaster;
             numberMarker();
             uint256 missingAccountFunds = 0;
+
+            // console.log("_validateAccountPrepayment - requiredPrefund: %s - paymaster: %s", requiredPrefund, paymaster);
+
             if (paymaster == address(0)) {
                 uint256 bal = balanceOf(sender);
                 missingAccountFunds = bal > requiredPrefund
                     ? 0
                     : requiredPrefund - bal;
             }
+
             try
                 IAccount(sender).validateUserOp{
                     gas: mUserOp.verificationGasLimit
@@ -439,14 +462,19 @@ contract EntryPoint is IEntryPoint, StakeManager, NonceManager, ReentrancyGuard,
             } catch {
                 revert FailedOp(opIndex, "AA23 reverted (or OOG)");
             }
+
             if (paymaster == address(0)) {
                 DepositInfo storage senderInfo = deposits[sender];
                 uint256 deposit = senderInfo.deposit;
+                
+                // console.log("deposit: %s", deposit);
+
                 if (requiredPrefund > deposit) {
                     revert FailedOp(opIndex, "AA21 didn't pay prefund");
                 }
                 senderInfo.deposit = uint112(deposit - requiredPrefund);
             }
+
             gasUsedByValidateAccountPrepayment = preGas - gasleft();
         }
     }
@@ -523,6 +551,9 @@ contract EntryPoint is IEntryPoint, StakeManager, NonceManager, ReentrancyGuard,
         (address aggregator, bool outOfTimeRange) = _getValidationData(
             validationData
         );
+
+        // console.log("_validateAccountAndPaymasterValidationData - aggregator: %s - expectedAggregator: %s", aggregator, expectedAggregator);
+
         if (expectedAggregator != aggregator) {
             revert FailedOp(opIndex, "AA24 signature error");
         }
@@ -671,11 +702,13 @@ contract EntryPoint is IEntryPoint, StakeManager, NonceManager, ReentrancyGuard,
                             }(mode, context, actualGasCost)
                         // solhint-disable-next-line no-empty-blocks
                         {} catch Error(string memory reason) {
+                            console.log("FailedOp()");
                             revert FailedOp(
                                 opIndex,
                                 string.concat("AA50 postOp reverted: ", reason)
                             );
                         } catch {
+                            console.log("FailedOp() - 2");
                             revert FailedOp(opIndex, "AA50 postOp revert");
                         }
                     }
