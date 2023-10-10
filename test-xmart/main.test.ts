@@ -74,6 +74,7 @@ describe('XMart Account', () => {
     console.log(`Paymaster: ${paymaster.address}`)
     console.log(`entryPoint: ${entryPoint.address}`)
     console.log(`token: ${token.address}`)
+    console.log(`protocol: ${protocol.address}`)
     console.log(`xAccountAddress: ${xAccountAddressPre}`)
   })
 
@@ -82,7 +83,7 @@ describe('XMart Account', () => {
     const userSpends = 30
 
     /** send tokens to undeployed account */
-    await(
+    await (
       await token.mint(
         xAccountAddressPre,
         utils.parseUnits(userFunds.toString(), decimals)
@@ -140,7 +141,9 @@ describe('XMart Account', () => {
     const paymasterEntryPointBalance0 = await paymasterEntryPoint.balanceOf(
       paymaster.address
     )
-    expect(paymasterEntryPointBalance0).to.eq(parseEther('1'))
+    expect(paymasterEntryPointBalance0, 'Balance of paymaster wrong').to.eq(
+      parseEther('1')
+    )
 
     /** Get the paymaster signature to pay for userop */
     const hash = await paymaster.getHash(userOpRaw, 0, 0)
@@ -177,7 +180,10 @@ describe('XMart Account', () => {
       throw new Error('accountDeployedEvent undefined')
     const xAccountAddress = accountDeployedEvent.args?.sender
 
-    expect(xAccountAddress).to.eq(xAccountAddressPre)
+    expect(
+      xAccountAddress,
+      'Precomputed address and actual address of account are not the same'
+    ).to.eq(xAccountAddressPre)
 
     const userOperationEvent = res.events.find(
       (e) => e.event && e.event === 'UserOperationEvent'
@@ -193,17 +199,17 @@ describe('XMart Account', () => {
     const protocolTokenBalancePost = await token.balanceOf(protocol.address)
     const xAccountBalance = await protocol.balanceOf(xAccountAddress)
 
-    expect(accountTokenBalancePost).to.eq(
-      utils.parseUnits((userFunds - userSpends).toString(), decimals),
+    expect(
+      accountTokenBalancePost,
       'account token balance not as expected after depositing on protocol'
-    )
-    expect(protocolTokenBalancePost).to.eq(
-      utils.parseUnits(userSpends.toString(), decimals),
+    ).to.eq(utils.parseUnits((userFunds - userSpends).toString(), decimals))
+    expect(
+      protocolTokenBalancePost,
       'protocol token balance not as expected after depositing on protocol'
-    )
-    expect(xAccountBalance).to.eq(
-      utils.parseUnits(userSpends.toString(), decimals),
+    ).to.eq(utils.parseUnits(userSpends.toString(), decimals))
+    expect(
+      xAccountBalance,
       'account balance on the protocol not as expected'
-    )
+    ).to.eq(utils.parseUnits(userSpends.toString(), decimals))
   })
 })
