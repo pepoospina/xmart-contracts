@@ -3,23 +3,34 @@ import '@typechain/hardhat'
 import { HardhatUserConfig } from 'hardhat/config'
 import 'hardhat-deploy'
 import '@nomiclabs/hardhat-etherscan'
+import '@solidstate/hardhat-bytecode-exporter'
 
 import 'solidity-coverage'
 
 import * as fs from 'fs'
 
-const mnemonicFileName = process.env.MNEMONIC_FILE ?? `${process.env.HOME}/.secret/testnet-mnemonic.txt`
+const mnemonicFileName =
+  process.env.MNEMONIC_FILE ??
+  `${process.env.HOME}/.secret/testnet-mnemonic.txt`
 let mnemonic = 'test '.repeat(11) + 'junk'
-if (fs.existsSync(mnemonicFileName)) { mnemonic = fs.readFileSync(mnemonicFileName, 'ascii') }
+if (fs.existsSync(mnemonicFileName)) {
+  mnemonic = fs.readFileSync(mnemonicFileName, 'ascii')
+}
 
-function getNetwork1 (url: string): { url: string, accounts: { mnemonic: string } } {
+function getNetwork1(url: string): {
+  url: string
+  accounts: { mnemonic: string }
+} {
   return {
     url,
-    accounts: { mnemonic }
+    accounts: { mnemonic },
   }
 }
 
-function getNetwork (name: string): { url: string, accounts: { mnemonic: string } } {
+function getNetwork(name: string): {
+  url: string
+  accounts: { mnemonic: string }
+} {
   return getNetwork1(`https://${name}.infura.io/v3/${process.env.INFURA_ID}`)
   // return getNetwork1(`wss://${name}.infura.io/ws/v3/${process.env.INFURA_ID}`)
 }
@@ -28,8 +39,7 @@ const optimizedComilerSettings = {
   version: '0.8.17',
   settings: {
     optimizer: { enabled: true, runs: 1000000 },
-    viaIR: true
-  }
+  },
 }
 
 // You need to export an object to set up your config
@@ -68,6 +78,9 @@ const config: HardhatUserConfig = {
   typechain: {
     outDir: './typechain',
     target: 'ethers-v5',
+  },
+  bytecodeExporter: {
+    path: './artifacts',
   },
 }
 
