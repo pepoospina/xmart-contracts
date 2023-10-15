@@ -1,0 +1,8 @@
+#!/bin/bash
+
+set -euo pipefail
+export FORCE_COLOR=1
+
+cp ./deployments/localhost/XAccountFactory.json ../app/app/src/main/res/raw/x_account_factory.json
+
+cp ./artifacts/contracts/xmart/XAccount.sol

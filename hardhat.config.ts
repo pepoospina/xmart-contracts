@@ -4,10 +4,12 @@ import { HardhatUserConfig } from 'hardhat/config'
 import 'hardhat-deploy'
 import '@nomiclabs/hardhat-etherscan'
 import '@solidstate/hardhat-bytecode-exporter'
+import 'hardhat-abi-exporter'
 
 import 'solidity-coverage'
 
 import * as fs from 'fs'
+import path from 'path'
 
 const mnemonicFileName =
   process.env.MNEMONIC_FILE ??
@@ -81,6 +83,14 @@ const config: HardhatUserConfig = {
   },
   bytecodeExporter: {
     path: './artifacts',
+    clear: true,
+  },
+  abiExporter: {
+    path: './artifacts',
+    clear: true,
+    rename: (sourceName: string, contractName: string): string => {
+      return path.join(`${sourceName}`, `${contractName}.abi`)
+    },
   },
 }
 
